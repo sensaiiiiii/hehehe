@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+	<meta charset="UTF-8">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>Valentine's Flower ❤️</title>
+
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 100vh;
+			font-family: 'Arial', sans-serif;
+			overflow: hidden;
+		}
+
+		.container {
+			text-align: center;
+			position: relative;
+		}
+
+		.title {
+			color: white;
+			font-size: 2.5rem;
+			text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+			margin-bottom: 2rem;
+			animation: glow 2s ease-in-out infinite;
+		}
+
+		@keyframes glow {
+
+			0%,
+			100% {
+				text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+			}
+
+			50% {
+				text-shadow: 0 0 20px #ff4d4d, 0 0 40px #ff4d4d;
+			}
+		}
+
+		canvas {
+			border-radius: 20px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+			cursor: pointer;
+			transition: transform 0.3s ease;
+		}
+
+		canvas:hover {
+			transform: scale(1.02);
+		}
+
+		.message {
+			color: white;
+			font-size: 1.5rem;
+			margin-top: 2rem;
+			opacity: 0;
+			transition: opacity 1s ease;
+		}
+
+		.message.show {
+			opacity: 1;
+		}
+
+		.hearts {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+		}
+
+		.heart {
+			position: absolute;
+			color: #ff3366;
+			font-size: 20px;
+			animation: float 4s ease-in-out infinite;
+		}
+
+		@keyframes float {
+			0% {
+				transform: translateY(100vh) scale(1);
+				opacity: 1;
+			}
+
+			100% {
+				transform: translateY(-100px) scale(0);
+				opacity: 0;
+			}
+		}
+
+		button {
+			background: #ff4d6d;
+			color: white;
+			border: none;
+			padding: 15px 30px;
+			font-size: 1.2rem;
+			border-radius: 50px;
+			cursor: pointer;
+			margin-top: 2rem;
+			transition: all 0.3s ease;
+			box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
+		}
+
+		button:hover {
+			background: #ff3355;
+			transform: translateY(-2px);
+			box-shadow: 0 6px 20px rgba(255, 77, 109, 0.6);
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<div class="container">
+
+		<h1 class="title">🌹 Happy Valentine's Day! 🌹</h1>
+
+		<canvas id="flowerCanvas" width="600" height="400"></canvas>
+
+		<div class="hearts" id="heartsContainer"></div>
+
+		<p class="message" id="loveMessage">Mwaaa</p>
+
+		<button onclick="bloomAgain()">Bloom Again ✨</button>
+
+	</div>
+
+	<script>
+		const canvas = document.getElementById('flowerCanvas');
+		const ctx = canvas.getContext('2d');
+		let petals = [];
+		let animationFrame;
+		let message = document.getElementById('loveMessage');
+		// Create initial flower
+		function createFlower() {
+			petals = [];
+			const centerX = canvas.width / 2;
+			const centerY = canvas.height / 2 - 30;
+			// Create stem
+			petals.push({
+				type: 'stem',
+				x1: centerX,
+				y1: centerY + 80,
+				x2: centerX,
+				y2: centerY + 150
+			});
+			// Create leaves
+			petals.push({
+				type: 'leaf',
+				x: centerX,
+				y: centerY + 120,
+				angle: -30
+			});
+			petals.push({
+				type: 'leaf',
+				x: centerX,
+				y: centerY + 140,
+				angle: 30
+			});
+			// Create petals (pink rose petals)
+			const petalCount = 12;
+			for (let i = 0; i < petalCount; i++) {
+				const angle = (i / petalCount) * Math.PI * 2;
+				const radius = 50 + Math.random() * 20;
+				petals.push({
+					type: 'petal',
+					angle: angle,
+					radius: radius,
+					offset: 0,
+					speed: 0.002 + Math.random() * 0.002,
+					color: `hsl(${320 + Math.random() * 20}, 80%, 65%)`, // Adjusted to pink hues for a pink rose
+					size: 20 + Math.random() * 15
+				});
+			}
+			// Create flower center
+			petals.push({
+				type: 'center',
+				x: centerX,
+				y: centerY,
+				radius: 25
+			});
+		}
+		// Draw the flower
+		function drawFlower() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			// Draw gradient background for canvas
+			const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+			gradient.addColorStop(0, '#fff5f5');
+			gradient.addColorStop(1, '#ffe0e0');
+			ctx.fillStyle = gradient;
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			petals.forEach(petal => {
+				if (petal.type === 'stem') {
+					// Draw stem
+					ctx.beginPath();
+					ctx.moveTo(petal.x1, petal.y1);
+					ctx.lineTo(petal.x2, petal.y2);
+					ctx.strokeStyle = '#4caf50';
+					ctx.lineWidth = 8;
+					ctx.stroke();
+				} else if (petal.type === 'leaf') {
+					// Draw leaves
+					ctx.save();
+					ctx.translate(petal.x, petal.y);
+					ctx.rotate(petal.angle * Math.PI / 180);
+					ctx.beginPath();
+					ctx.ellipse(20, 0, 25, 12, 0, 0, Math.PI * 2);
+					ctx.fillStyle = '#81c784';
+					ctx.fill();
+					ctx.restore();
+				} else if (petal.type === 'petal') {
+					// Draw petals with animation
+					const centerX = canvas.width / 2;
+					const centerY = canvas.height / 2 - 30;
+					petal.offset += petal.speed;
+					const floatY = Math.sin(petal.offset) * 5;
+					const x = centerX + Math.cos(petal.angle) * petal.radius;
+					const y = centerY + Math.sin(petal.angle) * petal.radius + floatY;
+					ctx.save();
+					ctx.translate(x, y);
+					ctx.rotate(petal.angle + 0.5);
+					// Draw petal (heart shape)
+					ctx.beginPath();
+					ctx.moveTo(0, 0);
+					ctx.bezierCurveTo(
+						-petal.size / 2, -petal.size / 2,
+						-petal.size, petal.size / 2,
+						0, petal.size
+					);
+					ctx.bezierCurveTo(
+						petal.size, petal.size / 2,
+						petal.size / 2, -petal.size / 2,
+						0, 0
+					);
+					ctx.fillStyle = petal.color;
+					ctx.shadowColor = '#ff99aa';
+					ctx.shadowBlur = 15;
+					ctx.fill();
+					ctx.restore();
+				} else if (petal.type === 'center') {
+					// Draw flower center
+					ctx.beginPath();
+					ctx.arc(petal.x, petal.y, petal.radius, 0, Math.PI * 2);
+					const gradient = ctx.createRadialGradient(
+						petal.x - 5, petal.y - 5, 5,
+						petal.x, petal.y, petal.radius
+					);
+					gradient.addColorStop(0, '#ffd700');
+					gradient.addColorStop(1, '#ffb347');
+					ctx.fillStyle = gradient;
+					ctx.shadowColor = '#ffaa00';
+					ctx.shadowBlur = 20;
+					ctx.fill();
+				}
+			});
+			animationFrame = requestAnimationFrame(drawFlower);
+		}
+		// Create floating hearts
+		function createHearts() {
+			const container = document.getElementById('heartsContainer');
+			setInterval(() => {
+				const heart = document.createElement('span');
+				heart.className = 'heart';
+				heart.innerHTML = '❤️';
+				heart.style.left = Math.random() * 100 + '%';
+				heart.style.animationDuration = (3 + Math.random() * 4) + 's';
+				heart.style.fontSize = (15 + Math.random() * 30) + 'px';
+				container.appendChild(heart);
+				setTimeout(() => {
+					heart.remove();
+				}, 7000);
+			}, 500);
+		}
+		// Click on canvas to show message
+		canvas.addEventListener('click', () => {
+			message.classList.add('show');
+			// Create burst of hearts
+			for (let i = 0; i < 5; i++) {
+				setTimeout(() => {
+					const heart = document.createElement('span');
+					heart.className = 'heart';
+					heart.innerHTML = '💖';
+					heart.style.left = (40 + Math.random() * 20) + '%';
+					heart.style.top = '50%';
+					container.appendChild(heart);
+				}, i * 200);
+			}
+		});
+		// Bloom again function
+		function bloomAgain() {
+			message.classList.remove('show');
+			createFlower();
+		}
+		// Initialize
+		createFlower();
+		drawFlower();
+		createHearts();
+		// Clean up animation on page unload
+		window.addEventListener('beforeunload', () => {
+			if (animationFrame) {
+				cancelAnimationFrame(animationFrame);
+			}
+		});
+	</script>
+
+</body>
+
+</html>
